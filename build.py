@@ -449,6 +449,7 @@ def build_flutter_windows(version, features, skip_portable_pack):
     system2(
         f'"{sys.executable}" ./generate.py -f ../../{flutter_build_dir_2} -o . -e ../../{flutter_build_dir_2}/marvadesk.exe')
     os.chdir('../..')
+    system2('cargo build --release -p marvadesk-portable-packer')
     if os.path.exists('./marvadesk_portable.exe'):
         os.replace('./target/release/marvadesk-portable-packer.exe',
                    './marvadesk_portable.exe')

@@ -53,7 +53,10 @@ pub enum GrabState {
 pub type NotifyMessageBox = fn(String, String, String, String) -> dyn Future<Output = ()>;
 
 // the executable name of the portable version
-pub const PORTABLE_APPNAME_RUNTIME_ENV_KEY: &str = "RUSTDESK_APPNAME";
+pub const PORTABLE_APPNAME_RUNTIME_ENV_KEY: &str = "MARVADESK_APPNAME";
+
+/// Publisher/Editor name shown in Windows "Programs and Features" (Add/Remove Programs).
+pub const PUBLISHER_NAME: &str = "Soluciones Marva";
 
 pub const PLATFORM_WINDOWS: &str = "Windows";
 pub const PLATFORM_LINUX: &str = "Linux";

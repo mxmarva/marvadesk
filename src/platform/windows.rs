@@ -1,6 +1,6 @@
 use super::{CursorData, ResultType};
 use crate::{
-    common::PORTABLE_APPNAME_RUNTIME_ENV_KEY,
+    common::{PORTABLE_APPNAME_RUNTIME_ENV_KEY, PUBLISHER_NAME},
     custom_server::*,
     ipc,
     privacy_mode::win_topmost_window::{self, WIN_TOPMOST_INJECTED_PROCESS_EXE},
@@ -1466,6 +1466,7 @@ pub fn install_me(options: &str, path: String, silent: bool, debug: bool) -> Res
         version_build = versions[2];
     }
     let app_name = crate::get_app_name();
+    let publisher = PUBLISHER_NAME;
 
     let current_exe = std::env::current_exe()?;
 
@@ -1602,7 +1603,7 @@ reg add {subkey} /f /v DisplayVersion /t REG_SZ /d \"{version}\"
 reg add {subkey} /f /v Version /t REG_SZ /d \"{version}\"
 reg add {subkey} /f /v BuildDate /t REG_SZ /d \"{build_date}\"
 reg add {subkey} /f /v InstallLocation /t REG_SZ /d \"{path}\"
-reg add {subkey} /f /v Publisher /t REG_SZ /d \"{app_name}\"
+reg add {subkey} /f /v Publisher /t REG_SZ /d \"{publisher}\"
 reg add {subkey} /f /v VersionMajor /t REG_DWORD /d {version_major}
 reg add {subkey} /f /v VersionMinor /t REG_DWORD /d {version_minor}
 reg add {subkey} /f /v VersionBuild /t REG_DWORD /d {version_build}

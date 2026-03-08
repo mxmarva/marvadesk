@@ -71,8 +71,8 @@ def build_portable(output_folder: str, target: str):
     else:
         os.system("cargo build --release")
 
-# Linux: python3 generate.py -f ../rustdesk-portable-packer/test -o . -e ./test/main.py
-# Windows: python3 .\generate.py -f ..\rustdesk\flutter\build\windows\runner\Debug\ -o . -e ..\rustdesk\flutter\build\windows\runner\Debug\rustdesk.exe
+# Linux: python3 generate.py -f ../marvadesk-portable-packer/test -o . -e ./test/main.py
+# Windows: python3 .\generate.py -f ..\marvadesk\flutter\build\windows\runner\Debug\ -o . -e ..\marvadesk\flutter\build\windows\runner\Debug\marvadesk.exe
 
 
 if __name__ == '__main__':
@@ -82,17 +82,17 @@ if __name__ == '__main__':
     parser.add_option("-o", "--output", dest="output_folder",
                       help="the root of portable packer project, default is './'")
     parser.add_option("-e", "--executable", dest="executable",
-                      help="specify startup file in --folder, default is rustdesk.exe")
+                      help="specify startup file in --folder, default is marvadesk.exe")
     parser.add_option("-t", "--target", dest="target",
                       help="the target used by cargo")
     parser.add_option("-l", "--level", dest="level", type="int",
                       help="compression level, default is 11, highest", default=11)
     (options, args) = parser.parse_args()
-    folder = options.folder or './rustdesk'
+    folder = options.folder or './marvadesk'
     output_folder = os.path.abspath(options.output_folder or './')
 
     if not options.executable:
-        options.executable = 'rustdesk.exe'
+        options.executable = 'marvadesk.exe'
     if not options.executable.startswith(folder):
         options.executable = folder + '/' + options.executable
     exe: str = os.path.abspath(options.executable)

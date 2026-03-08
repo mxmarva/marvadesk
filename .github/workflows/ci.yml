@@ -110,6 +110,10 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Initialize submodules
+      run: git submodule update --init --recursive
+      shell: bash
+
     - name: Install prerequisites
       shell: bash
       run: |

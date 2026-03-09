@@ -29,7 +29,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install prerequisites
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
         run: |
           sudo apt-get install ca-certificates -y
           sudo apt-get update -y

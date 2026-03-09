@@ -1,0 +1,9 @@
+# Reducir contexto de build y evitar "read/write on closed pipe" con .cargo/target
+.git
+.cargo
+target
+flutter/build
+flutter/.dart_tool
+*.deb
+*.rpm
+*.pkg.tar.zst

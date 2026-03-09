@@ -132,16 +132,88 @@ cd
 
 ### Compilar (Linux, con Flutter)
 
+**Verificación rápida de requisitos:**
 ```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-git clone --recurse-submodules https://github.com/MarvaDesk/MarvaDesk
-cd MarvaDesk
-export VCPKG_ROOT=$HOME/vcpkg
-python build.py --flutter
+./scripts/check_linux_build_requirements.sh
 ```
 
-El ejecutable quedará en `target/release/` (o en la ruta que indique el script de build).
+**Guía detallada:** Consulta [docs/BUILD_LINUX.md](docs/BUILD_LINUX.md) para requisitos completos, dependencias por distribución y solución de problemas.
+
+**Pasos resumidos:**
+```sh
+# 1. Instalar dependencias (Ubuntu/Debian)
+sudo apt install -y zip g++ gcc git curl wget nasm yasm libgtk-3-dev clang \
+    libxcb-randr0-dev libxdo-dev libxfixes-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+    libasound2-dev libpulse-dev cmake make libclang-dev ninja-build libssl-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libpam0g-dev
+
+# 2. vcpkg
+git clone https://github.com/microsoft/vcpkg && cd vcpkg && ./bootstrap-vcpkg.sh
+export VCPKG_ROOT=$PWD/vcpkg  # o $HOME/vcpkg
+$VCPKG_ROOT/vcpkg install libvpx libyuv opus aom
+
+# 3. Bridge (primera vez)
+cargo install flutter_rust_bridge_codegen --version 1.80.1 --features uuid
+~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h
+
+# 4. Build
+cd MarvaDesk
+git submodule update --init --recursive
+python3 build.py --flutter --hwcodec --unix-file-copy-paste
+```
+
+El paquete `marvadesk-1.4.6.deb` (o `.rpm`/`.pkg.tar.zst` según la distro) quedará en la raíz del proyecto.
+
+### Generar .rpm y .pkg (Arch) desde una sola distro (p. ej. Linux Mint)
+
+En una distro basada en Debian/Ubuntu solo se genera `.deb`. Para obtener también **.rpm** y **.pkg.tar.zst** desde la misma máquina se usan **dos imágenes Docker** (una para Fedora, otra para Arch), cada una con todo el sistema y herramientas ya instaladas.
+
+**Flujo:**
+
+1. **Una sola vez** (o cuando cambies de versión de Flutter/vcpkg): el script **construye la imagen** (tarda ~20–40 min):
+   - Al ejecutar `./scripts/build-packages.sh rpm` por primera vez → construye la imagen `marvadesk-builder-fedora`.
+   - Al ejecutar `./scripts/build-packages.sh arch` por primera vez → construye la imagen `marvadesk-builder-arch`.
+2. **Las siguientes veces**: la imagen ya existe, el script solo **arranca el contenedor y ejecuta el build** (solo tarda lo que tarde compilar MarvaDesk).
+
+**Comandos:**
+
+```sh
+# Instalar Docker una vez
+sudo apt install docker.io
+# Opcional: sudo usermod -aG docker $USER  (y cerrar sesión) para no usar sudo
+
+# Solo .deb (en tu máquina)
+./scripts/build-packages.sh
+# o:  ./scripts/build-packages.sh deb
+
+# .rpm (1ª vez: construye imagen Fedora; luego: solo build)
+./scripts/build-packages.sh rpm
+
+# .pkg Arch (1ª vez: construye imagen Arch; luego: solo build)
+./scripts/build-packages.sh arch
+
+# Los tres
+./scripts/build-packages.sh all
+```
+
+Las imágenes se guardan en Docker (`marvadesk-builder-fedora`, `marvadesk-builder-arch`). No hay un solo contenedor con “Arch y RPM”: son dos imágenes distintas (Fedora para .rpm, Arch para .pkg). Los paquetes generados aparecen en la raíz del proyecto.
+
+**Empaquetar solo desde el bundle (sin compilar en el contenedor):**  
+Si ya compilaste (`python3 build.py --flutter`) y tienes el bundle en `flutter/build/linux/x64/release/bundle/`:
+
+```sh
+./scripts/build-packages.sh rpm-from-bundle   # .rpm desde el bundle (imagen mínima ~1 min)
+./scripts/build-packages.sh arch-from-bundle  # .pkg desde el bundle (imagen mínima ~2-5 min)
+```
+
+**Convertir .deb → .rpm en tu máquina:** con `alien` (conversión aproximada):
+
+```sh
+sudo apt install alien
+sudo alien -r marvadesk-1.4.6.deb
+```
+
+No hay herramienta estándar para .deb → .pkg (Arch); usa `arch-from-bundle` con el mismo bundle.
 
 ---
 

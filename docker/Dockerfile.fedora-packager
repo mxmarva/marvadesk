@@ -1,0 +1,6 @@
+# Solo herramientas para empaquetar .rpm a partir del bundle (sin Flutter/Rust/vcpkg).
+# Uso: ver scripts/build-packages.sh rpm-from-bundle
+
+FROM fedora:40
+RUN dnf install -y -q rpm-build && dnf clean all
+WORKDIR /workspace

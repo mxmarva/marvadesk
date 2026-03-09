@@ -1,0 +1,30 @@
+# Imagen con todo lo necesario para generar .pkg.tar.zst (Arch/Manjaro).
+# Construir UNA vez:  docker build -f docker/Dockerfile.arch -t marvadesk-builder-arch .
+# Luego:  docker run --rm -v $(pwd):/workspace -w /workspace -e VCPKG_ROOT=/vcpkg marvadesk-builder-arch
+#         (o usar ./scripts/build-packages.sh arch)
+
+FROM archlinux:latest
+
+# Evitar preguntas de pacman
+ENV PACMAN_OPTS="--noconfirm"
+
+RUN pacman -Sy --noconfirm base-devel git curl wget nasm cmake clang gtk3 libxcb libxfixes alsa-lib \
+    gstreamer gst-plugins-base pam ninja python
+
+# Rust
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# Flutter
+ARG FLUTTER_VER=3.29.3
+RUN curl -sL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VER}-stable.tar.xz" | tar -xJ -C /opt
+ENV PATH="/opt/flutter/bin:$PATH"
+
+# vcpkg + dependencias
+RUN git clone --depth 1 --branch 2023.04.15 https://github.com/microsoft/vcpkg /vcpkg \
+    && /vcpkg/bootstrap-vcpkg.sh -disableMetrics \
+    && /vcpkg/vcpkg install libvpx libyuv opus aom
+
+ENV VCPKG_ROOT=/vcpkg
+WORKDIR /workspace
+ENTRYPOINT ["/bin/bash", "-c", "git submodule update --init --recursive || true && python3 build.py --flutter --unix-file-copy-paste"]

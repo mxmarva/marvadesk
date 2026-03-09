@@ -1,0 +1,6 @@
+# Solo herramientas para empaquetar .pkg.tar.zst a partir del bundle (sin Flutter/Rust/vcpkg).
+# Uso: ver scripts/build-packages.sh arch-from-bundle
+
+FROM archlinux:latest
+RUN pacman -Sy --noconfirm base-devel && pacman -Scc --noconfirm
+WORKDIR /workspace

@@ -1,10 +1,10 @@
-pkgname=rustdesk
+pkgname=marvadesk
 pkgver=1.4.6
 pkgrel=0
 epoch=
-pkgdesc=""
+pkgdesc="MarvaDesk - Remote Desktop Software"
 arch=('x86_64')
-url=""
+url="https://marvadesk.com"
 license=('AGPL-3.0')
 groups=()
 depends=('gtk3' 'xdotool' 'libxcb' 'libxfixes' 'alsa-lib' 'libva' 'libappindicator-gtk3' 'pam' 'gst-plugins-base' 'gst-plugin-pipewire')
@@ -15,7 +15,7 @@ provides=()
 conflicts=()
 replaces=()
 backup=()
-options=()
+options=('!debug')
 install=pacman_install
 changelog=
 noextract=()
@@ -26,7 +26,7 @@ package() {
 	  mkdir -p "${pkgdir}/usr/share/rustdesk" && cp -r ${HBB}/flutter/build/linux/x64/release/bundle/* -t "${pkgdir}/usr/share/rustdesk"
   fi
   mkdir -p "${pkgdir}/usr/bin"
-  pushd ${pkgdir} && ln -s /usr/share/rustdesk/rustdesk usr/bin/rustdesk && popd
+  pushd ${pkgdir} && ln -s /usr/share/rustdesk/marvadesk usr/bin/marvadesk && popd
   install -Dm 644 $HBB/res/rustdesk.service -t "${pkgdir}/usr/share/rustdesk/files"
   install -Dm 644 $HBB/res/rustdesk.desktop -t "${pkgdir}/usr/share/rustdesk/files"
   install -Dm 644 $HBB/res/rustdesk-link.desktop -t "${pkgdir}/usr/share/rustdesk/files"

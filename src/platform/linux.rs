@@ -1937,17 +1937,44 @@ fn switch_service(stop: bool) -> String {
     }
 }
 
+/// Nombre de la unidad systemd. Los paquetes (.deb, .rpm, etc.) instalan
+/// `rustdesk.service`; la app MarvaDesk debe usar ese nombre para poder
+/// detener/iniciar el servicio correctamente.
+fn systemd_unit_name() -> String {
+    let app = crate::get_app_name().to_lowercase();
+    if app == "marvadesk" {
+        "rustdesk".to_string()
+    } else {
+        app
+    }
+}
+
+/// Comprueba si existe la unidad systemd (instalada o cargada).
+fn systemd_unit_exists(unit: &str) -> bool {
+    run_cmds(&format!(
+        "systemctl list-unit-files {unit}.service 2>/dev/null"
+    ))
+    .map(|out| out.contains(&format!("{unit}.service")))
+    .unwrap_or(false)
+}
+
 pub fn uninstall_service(show_new_window: bool, _: bool) -> bool {
     if !has_cmd("systemctl") {
         // Failed when installed + flutter run + started by `show_new_window`.
         return false;
     }
+    let unit = systemd_unit_name();
+    if !systemd_unit_exists(&unit) {
+        // No hay unidad instalada; solo actualizar opción y considerar éxito.
+        Config::set_option("stop-service".into(), "".into());
+        log::info!("Service unit {unit}.service not installed, nothing to stop.");
+        return true;
+    }
     log::info!("Uninstalling service...");
     let cp = switch_service(true);
-    let app_name = crate::get_app_name().to_lowercase();
     // systemctl kill rustdesk --tray, execute cp first
     if !run_cmds_privileged(&format!(
-        "{cp} systemctl disable {app_name}; systemctl stop {app_name};"
+        "{cp} systemctl disable {unit}; systemctl stop {unit};"
     )) {
         Config::set_option("stop-service".into(), "".into());
         return true;
@@ -1966,9 +1993,9 @@ pub fn install_service() -> bool {
     }
     log::info!("Installing service...");
     let cp = switch_service(false);
-    let app_name = crate::get_app_name().to_lowercase();
+    let unit = systemd_unit_name();
     if !run_cmds_privileged(&format!(
-        "{cp} systemctl enable {app_name}; systemctl start {app_name};"
+        "{cp} systemctl enable {unit}; systemctl start {unit};"
     )) {
         Config::set_option("stop-service".into(), "Y".into());
     }
@@ -1977,10 +2004,12 @@ pub fn install_service() -> bool {
 
 fn check_if_stop_service() {
     if Config::get_option("stop-service".into()) == "Y" {
-        let app_name = crate::get_app_name().to_lowercase();
-        allow_err!(run_cmds(&format!(
-            "systemctl disable {app_name}; systemctl stop {app_name}"
-        )));
+        let unit = systemd_unit_name();
+        if systemd_unit_exists(&unit) {
+            allow_err!(run_cmds(&format!(
+                "systemctl disable {unit}; systemctl stop {unit}"
+            )));
+        }
     }
 }
 
